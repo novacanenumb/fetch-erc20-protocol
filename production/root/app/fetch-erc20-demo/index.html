@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fetch ERC20 Protocol Orchestration Demo</title>
+  <style>
+    :root {
+      --bg: #eef2f4;
+      --panel: #ffffff;
+      --panel-strong: #f8faf9;
+      --ink: #182021;
+      --muted: #5b686b;
+      --line: #cfd8d9;
+      --teal: #007c74;
+      --teal-soft: #d8f1ed;
+      --coral: #c94732;
+      --amber: #aa6a00;
+      --green: #2c7a3f;
+      --blue: #285c9f;
+      --shadow: 0 16px 40px rgba(25, 37, 40, 0.12);
+      --radius: 8px;
+      --mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      --sans: "Aptos", "Segoe UI", Verdana, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(135deg, rgba(0,124,116,0.12), transparent 35%),
+        linear-gradient(315deg, rgba(201,71,50,0.10), transparent 42%),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    button, input, select { font: inherit; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      border-right: 1px solid var(--line);
+      background: rgba(255,255,255,0.84);
+      backdrop-filter: blur(10px);
+      padding: 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+    }
+
+    main {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.05;
+      margin-bottom: 10px;
+      max-width: 780px;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .flat-panel {
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      padding: 12px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      min-height: 84px;
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .metric .value {
+      font-size: 22px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .ready { color: var(--green); background: #e8f4ea; }
+    .active { color: var(--blue); background: #e7eef8; }
+    .gated { color: var(--amber); background: #fff2d7; }
+    .blocked { color: var(--coral); background: #fae7e2; }
+    .planned { color: var(--muted); background: #edf1f2; }
+
+    .nav-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .nav-list button {
+      text-align: left;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      cursor: pointer;
+      color: var(--ink);
+    }
+
+    .nav-list button:hover,
+    .nav-list button.is-current {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .search-box {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .search-box input,
+    .search-box select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 18px;
+    }
+
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .agent {
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      border-radius: var(--radius);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      min-height: 128px;
+    }
+
+    .agent-name {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .agent small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .task-body {
+      padding: 0 14px 14px 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      border-left: 3px solid var(--teal);
+      padding: 8px 10px;
+      background: #fff;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .subtasks {
+      margin: 8px 0 0 0;
+      padding-left: 0;
+      list-style: none;
+      display: grid;
+      gap: 5px;
+    }
+
+    .subtasks li {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .check {
+      width: 14px;
+      height: 14px;
+      margin-top: 2px;
+      border: 1px solid var(--teal);
+      border-radius: 3px;
+      background: var(--teal-soft);
+    }
+
+    .packet-strip {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(74px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .packet {
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      border-radius: var(--radius);
+      padding: 9px;
+      min-height: 78px;
+      cursor: pointer;
+    }
+
+    .packet.is-selected {
+      outline: 2px solid var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .packet strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .packet span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .sim-grid {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .controls button {
+      border: 1px solid var(--teal);
+      color: var(--ink);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .controls button:hover {
+      background: var(--teal-soft);
+    }
+
+    .trace {
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      background: #101718;
+      color: #e6f0ee;
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 218px;
+      max-height: 330px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .state-code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f4f7f6;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      overflow: auto;
+      max-height: 280px;
+      white-space: pre-wrap;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      padding: 10px;
+    }
+
+    .mini b {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .mini span {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 9px;
+    }
+
+    .event:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    .event code {
+      font-family: var(--mono);
+      color: var(--teal);
+      font-size: 12px;
+    }
+
+    .event p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table th,
+    .table td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    .table th {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1100px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      .topbar, .grid-2, .sim-grid { grid-template-columns: 1fr; }
+      .metric-grid, .agent-grid, .split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      main { padding: 12px; }
+      aside { padding: 12px; }
+      h1 { font-size: 24px; }
+      .metric-grid, .agent-grid, .split { grid-template-columns: 1fr; }
+      .event { grid-template-columns: 1fr; }
+      .packet-strip { grid-template-columns: repeat(10, 118px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <h2>Fetch ERC20 Demo</h2>
+      <p class="subtle">Production-root orchestration surface. Protocol implementation remains gated to the approved implementation root until a write lease is granted.</p>
+      <div class="nav-list" aria-label="Demo sections">
+        <button class="is-current" data-scroll="#overview">Overview</button>
+        <button data-scroll="#agents">Agents</button>
+        <button data-scroll="#tree">Task Tree</button>
+        <button data-scroll="#packets">Packets</button>
+        <button data-scroll="#simulation">Protocol Trace</button>
+        <button data-scroll="#claude">Claude API Lanes</button>
+        <button data-scroll="#packet-gates">Packet Gates</button>
+      </div>
+      <div class="search-box">
+        <label class="subtle" for="treeSearch">Filter task tree</label>
+        <input id="treeSearch" type="search" placeholder="Search job, owner, task">
+        <select id="statusFilter" aria-label="Filter by status">
+          <option value="all">All statuses</option>
+          <option value="active">Active</option>
+          <option value="planned">Planned</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </div>
+    </aside>
+
+    <main>
+      <section id="overview" class="topbar">
+        <div class="panel">
+          <span class="status-pill active">Live local demo</span>
+          <h1>Fetch ERC20 Protocol orchestration and thesis-vault simulation</h1>
+          <p class="subtle">This browser app turns the external task tree into a navigable operating surface for six GPT-5.4-mini subagents and three secure-gated Claude API agent lanes. The protocol trace is local simulation data only.</p>
+          <div class="metric-grid">
+            <div class="metric"><div class="label">Jobs</div><div class="value" id="jobCount">0</div></div>
+            <div class="metric"><div class="label">Implementation packets</div><div class="value">10</div></div>
+            <div class="metric"><div class="label">GPT agents</div><div class="value">6</div></div>
+            <div class="metric"><div class="label">Claude API lanes</div><div class="value">3</div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Authority State</h2>
+          <table class="table">
+            <tr><th>Surface</th><th>Status</th></tr>
+            <tr><td>production/root</td><td><span class="status-pill active">planning and demo</span></td></tr>
+            <tr><td>sandbox/root</td><td><span class="status-pill gated">implementation lease required</span></td></tr>
+            <tr><td>scripts/root</td><td><span class="status-pill planned">validation scripts only</span></td></tr>
+            <tr><td>promotion</td><td><span class="status-pill blocked">requires nova or Fetch</span></td></tr>
+          </table>
+        </div>
+      </section>
+
+      <section id="agents" class="panel">
+        <h2>Assigned Agent Lanes</h2>
+        <div class="agent-grid" id="agentGrid"></div>
+      </section>
+
+      <section id="tree" class="grid-2">
+        <div class="panel">
+          <h2>Collapsible Organisation Task Tree</h2>
+          <div id="taskTree"></div>
+        </div>
+        <div class="panel">
+          <h2>Acceptance Focus</h2>
+          <div class="timeline" id="acceptanceList"></div>
+        </div>
+      </section>
+
+      <section id="packets" class="panel">
+        <h2>Implementation Packet Queue</h2>
+        <div class="packet-strip" id="packetStrip"></div>
+        <div class="flat-panel" id="packetDetail" style="margin-top:12px;"></div>
+      </section>
+
+      <section id="packet-gates" class="panel">
+        <h2>Implementation Packet Gates</h2>
+        <p class="subtle">Execution-grade projection of Job 10.4 dependency rules. Packets stay blocked until prerequisite packet evidence and disjoint write-set ownership are explicit.</p>
+        <table class="table" id="packetGateTable"></table>
+      </section>
+
+      <section id="simulation" class="grid-2">
+        <div class="panel">
+          <h2>Protocol Trace Simulator</h2>
+          <div class="sim-grid">
+            <div class="controls">
+              <button data-action="deposit">Run mock USDC deposit</button>
+              <button data-action="redeem">Run share redemption</button>
+              <button data-action="rebalance">Run constrained rebalance</button>
+              <button data-action="stale">Trigger stale oracle rejection</button>
+              <button data-action="pause">Cycle pause mode</button>
+              <button data-action="fullTrace">Load full v0 trace</button>
+            </div>
+            <div class="trace" id="traceLog"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Vault State</h2>
+          <div class="split">
+            <div class="mini"><b>NAV quote</b><span id="navValue">0</span></div>
+            <div class="mini"><b>Total shares</b><span id="shareValue">0</span></div>
+            <div class="mini"><b>Price per share</b><span id="ppsValue">1.0000</span></div>
+            <div class="mini"><b>Idle USDC</b><span id="idleValue">0</span></div>
+            <div class="mini"><b>Holder fee NAV</b><span id="holderFeeValue">0</span></div>
+            <div class="mini"><b>Pause mode</b><span id="pauseValue">ACTIVE</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <div class="panel">
+          <h2>State Inspector</h2>
+          <pre class="state-code" id="stateInspector"></pre>
+        </div>
+        <div class="panel">
+          <h2>Validation States</h2>
+          <div class="timeline">
+            <div class="event"><code>loading</code><p>Static data is embedded and loads immediately from the document.</p></div>
+            <div class="event"><code>empty</code><p>Filters can intentionally hide all tree nodes and show no matching jobs.</p></div>
+            <div class="event"><code>blocked</code><p>Implementation and Claude API calls remain blocked until approved leases and secret references exist.</p></div>
+            <div class="event"><code>error</code><p>Simulation failures are shown as local rejections with explicit reasons, not generic errors.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="claude" class="panel">
+        <h2>Claude API Agent Lanes</h2>
+        <p class="subtle">Live Claude execution unavailable. These lanes are represented as secure-gated provider agents. The demo does not request, print, or store API keys. Live execution remains unavailable until an approved secret source and enablement gate are present.</p>
+        <table class="table" id="claudeTable"></table>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const packetGates = [
+      { packet: "Packet 1", owner: "Raman / Packet scaffold owner", gate: "none", writeSet: "foundry package scaffold, shared libs, mock ERC20, README", status: "next", scope: "Required before every implementation packet." },
+      { packet: "Packet 2", owner: "Tesla + Raman", gate: "Packet 1", writeSet: "asset registry and adapter registry", status: "queued", scope: "Must precede oracle, adapter, factory, vault, and validation packets." },
+      { packet: "Packet 3", owner: "Raman", gate: "Packets 1-2", writeSet: "oracle interface and mock oracle", status: "queued", scope: "Must precede adapter, factory, vault accounting, and staleness tests." },
+      { packet: "Packet 4", owner: "Raman", gate: "Packets 1-3", writeSet: "thesis adapter interface and mock spot adapter", status: "queued", scope: "Must precede factory, deposits, redemptions, and rebalance." },
+      { packet: "Packet 5", owner: "Tesla + factory worker", gate: "Packets 1-4", writeSet: "factory deployment surface and factory tests", status: "blocked", scope: "No factory work until registry/oracle/adapter interfaces are stable." },
+      { packet: "Packet 6", owner: "Raman + accounting worker", gate: "Packets 1-5", writeSet: "vault accounting core and accounting tests", status: "blocked", scope: "Must precede deposit, redemption, fee, pause, security, and rebalance changes." },
+      { packet: "Packet 7", owner: "Hilbert + flow worker", gate: "Packet 6", writeSet: "deposit and redemption implementation plus matching tests", status: "blocked", scope: "Includes implementation behavior, not tests-only." },
+      { packet: "Packet 8", owner: "Tesla + security worker", gate: "Packet 6", writeSet: "fees, pause modes, security gates, and matching tests", status: "blocked", scope: "Includes required tests for every allowed and disallowed state." },
+      { packet: "Packet 9", owner: "Raman + rebalance worker", gate: "Packets 3,4,6,8", writeSet: "constrained rebalance and rebalance tests", status: "blocked", scope: "Requires oracle, adapter, accounting, and security gates first." },
+      { packet: "Packet 10", owner: "Hilbert", gate: "Packets 1-9", writeSet: "integration fixtures, regression coverage, forge test output, staging proposal draft", status: "blocked", scope: "Final validation only; no promotion without explicit approval." }
+    ];
+
+    const agents = [
+      { name: "Tesla", kind: "GPT-5.4-mini", effort: "medium", role: "Compliance, authority, containment, failure behavior", status: "assigned", id: "019f137c-fb39-7443-a60c-2229581b5f61" },
+      { name: "Raman", kind: "GPT-5.4-mini", effort: "high", role: "Architecture decomposition, packet ordering, invariant mapping", status: "assigned", id: "019f137c-fce3-7741-bf7f-091a63e57ea7" },
+      { name: "Hilbert", kind: "GPT-5.4-mini", effort: "xhigh", role: "Foundry validation matrix, boundary tests, DoD evidence", status: "assigned", id: "019f137c-fe37-78f3-9ca7-752fba4b9b9e" },
+      { name: "Noether", kind: "GPT-5.4-mini", effort: "medium", role: "Static browser demo coverage and interaction gaps", status: "assigned", id: "019f137c-ffb7-7563-9cb6-41dc026e14f3" },
+      { name: "Turing", kind: "GPT-5.4-mini", effort: "high", role: "Admin dashboard nested-org projection and runtime risk", status: "assigned", id: "019f137d-0137-7862-b35a-d6f9061630f7" },
+      { name: "Curie", kind: "GPT-5.4-mini", effort: "xhigh", role: "Requirement-by-requirement completion audit", status: "assigned", id: "019f137d-0291-77c1-9896-24c4d6013d51" }
+    ];
+
+    const claudeAgents = [
+      { name: "Claude API Agent A", role: "Spec critic and invariant reviewer", credential: "approved secure-store reference required; no approved reference loaded", status: "secure-gated" },
+      { name: "Claude API Agent B", role: "External audit and edge-case reviewer", credential: "approved secure-store reference required; no approved reference loaded", status: "secure-gated" },
+      { name: "Claude API Agent C", role: "Demo narrative and handoff reviewer", credential: "managed-agent enablement required; no approved reference loaded", status: "secure-gated" }
+    ];
+
+    const fullTrace = [
+      "T00 | INIT | quote=MOCK_USDC | basket=SPOT_A/SPOT_B/SPOT_C | weights_bps=5000/3000/2000 | depositFeeBps=100 | redemptionFeeBps=50 | feeSplitBps=5000/3000/2000 | creatorRecipient=CREATOR_TREASURY | protocolRecipient=PROTOCOL_TREASURY | maxOracleStaleness=300s | oracles=fresh | pause=UNPAUSED",
+      "T01 | DEPOSIT_BOOTSTRAP | alice deposits 100,000.000000 MOCK_USDC | totalSupply=0 so deposit fee waived | mint=100,000.000000 shares @ initialSharePrice=1.000000 | allocation=SPOT_A 50,000.000000 (50%) | SPOT_B 30,000.000000 (30%) | SPOT_C 20,000.000000 (20%) | navAfter=100,000.000000 | ppsAfter=1.000000",
+      "T02 | MARK_TO_MARKET | local mock oracle refresh | basket navAfter=125,000.000000 | ppsAfter=1.250000",
+      "T03 | DEPOSIT_FEE_BEARING | bob deposits 20,000.000000 MOCK_USDC | depositFee=200.000000 | split=holder 100.000000 / creator 60.000000 / protocol 40.000000 | ppsBefore=1.250000 | addedNavForMint=19,800.000000 | sharesMinted=15,840.000000 | navAfter=144,900.000000 | supplyAfter=115,840.000000 | ppsAfter=1.250863 | holder-fee USDC stays in vault and lifts PPS for existing holders",
+      "T04 | REDEEM | carol redeems 10,000.000000 shares | ppsBefore=1.250863 | grossClaimQuote=12,508.632597 | redemptionFee=62.543163 | split=holder 31.271581 / creator 18.762949 / protocol 12.508633 | quoteOut=12,446.089434 MOCK_USDC | navAfter=132,422.638985 | supplyAfter=105,840.000000 | ppsAfter=1.251159 | retained holder fee lifts PPS again for remaining holders",
+      "T05 | PAUSE_DEPOSITS | pause(1) / PAUSED_DEPOSITS | new deposits revert | redeem still succeeds",
+      "T06 | PAUSE_REBALANCE | pause(2) / PAUSED_REBALANCE | rebalance reverts | deposits and redeems still succeed",
+      "T07 | PAUSE_DEPOSITS_AND_REBALANCE | pause(3) / PAUSED_DEPOSITS_AND_REBALANCE | deposits and rebalances revert | redeem still succeeds",
+      "T08 | PAUSE_ALL | pause(4) / PAUSED_ALL | deposits, rebalances, and redeems revert",
+      "T09 | ORACLE_STALE | advance mock time to 301s without oracle refresh | maxOracleStaleness=300s breached | deposit/rebalance revert on stale pricing | refresh oracle and retry succeeds"
+    ];
+
+    const jobs = [
+      {
+        id: "0", title: "Governance and containment control", owner: "Compliance lane", status: "active",
+        tasks: [
+          ["Confirm active lease", ["Record production-root orchestration", "Preserve sandbox implementation gate", "Flag authority conflicts"]],
+          ["Protect stakeholder metadata", ["Keep Fetch CEO 75%", "Keep nova Orchestrator 25%", "Prevent external ownership edits"]],
+          ["Enforce forbidden surfaces", ["No core/governance/workspace writes", "No new 06_WORKSPACE roots", "Escalate ambiguous authority"]]
+        ],
+        acceptance: "Every implementation job has an approved root, owner, blocker rule, and promotion gate."
+      },
+      {
+        id: "1", title: "Organisation build map", owner: "Main orchestrator", status: "active",
+        tasks: [
+          ["Maintain environment skeleton", ["Preserve stable/release/production/staging/sandbox/scripts roots", "Keep production as orchestration", "Reserve scripts for validation"]],
+          ["Define package", ["Use app/thesis-protocol", "Track foundry.toml, README, src, test", "Limit v0 modules to spot primitive"]],
+          ["Maintain docs", ["Document scope and data flow", "Avoid instruction sprawl", "Keep handoff actionable"]]
+        ],
+        acceptance: "The environment map and package map are clear enough for bounded worker execution."
+      },
+      {
+        id: "2", title: "Protocol architecture decomposition", owner: "Architecture lane", status: "planned",
+        tasks: [
+          ["Define boundaries", ["Factory deploys", "Vault accounts", "Registries approve", "Mocks price and convert"]],
+          ["Define shared structures", ["AssetPolicy", "FeeConfig", "PositionUpdate", "AdapterKind", "custom errors"]],
+          ["Freeze dependency chain", ["Scaffold first", "Registries before value movement", "Accounting before flows"]]
+        ],
+        acceptance: "Every contract has one primary responsibility and every invariant has a test job."
+      },
+      {
+        id: "3", title: "Registry and configuration layer", owner: "Implementation lane A", status: "planned",
+        tasks: [
+          ["Asset registry", ["Store approval policy", "Reject inactive or stale assets", "Expose validation helpers"]],
+          ["Adapter registry", ["Store adapter kind", "Permit SPOT only", "Keep future enum values inert"]],
+          ["Config gates", ["Weights sum 10000", "Caps enforced", "Fee split valid"]]
+        ],
+        acceptance: "Invalid quote, spot, adapter, weight, cap, and fee configs fail before deployment."
+      },
+      {
+        id: "4", title: "Mock oracle and spot adapter", owner: "Implementation lane B", status: "planned",
+        tasks: [
+          ["Mock oracle", ["Set test prices", "Return decimals and timestamp", "Reject zero and stale prices"]],
+          ["Mock spot adapter", ["Quote-to-asset conversion", "Asset-to-quote conversion", "Controlled slippage"]],
+          ["Adapter validation", ["Approved assets", "Approved adapters", "Fresh oracle"]]
+        ],
+        acceptance: "Pricing and conversion are deterministic, local-only, and test-controlled."
+      },
+      {
+        id: "5", title: "Factory deployment layer", owner: "Implementation lane A", status: "planned",
+        tasks: [
+          ["Deployment entrypoint", ["Validate quote", "Validate spots", "Validate adapters", "Validate oracle", "Validate uniqueness"]],
+          ["Deploy vault", ["Pass config", "Emit VaultCreated", "Avoid custody"]]
+        ],
+        acceptance: "Factory creates only valid v0 spot vaults."
+      },
+      {
+        id: "6", title: "Vault accounting and share token", owner: "Implementation lane C", status: "planned",
+        tasks: [
+          ["State model", ["Track quote and spot assets", "Track positions", "Use ERC20 shares"]],
+          ["NAV and PPS", ["Idle quote", "Spot values", "Normalize precision"]],
+          ["Supply invariant", ["Mint only against added NAV", "Burn on redeem", "No supply increase without NAV"]]
+        ],
+        acceptance: "NAV, PPS, and supply behavior are deterministic."
+      },
+      {
+        id: "7", title: "Deposit, redemption, and fees", owner: "Implementation lane C", status: "planned",
+        tasks: [
+          ["Deposit", ["Deadline", "Pause", "Min shares", "Bootstrap fee waiver", "Weighted allocation"]],
+          ["Redeem", ["Gross claim", "Fee split", "Position exit", "Share burn", "Quote out"]],
+          ["Fee incentive", ["Caps", "Shares sum 10000", "Holder fee PPS uplift"]]
+        ],
+        acceptance: "Deposit, redeem, fee split, and holder retained PPS uplift are proven."
+      },
+      {
+        id: "8", title: "Pause, rebalance, and security", owner: "Implementation lane B", status: "planned",
+        tasks: [
+          ["Pause modes", ["Deposits pause", "Rebalance pause", "Full pause"]],
+          ["Rebalance", ["Creator only", "Cooldown", "Fresh oracle", "Sell to quote", "Redeploy weights"]],
+          ["Security", ["SafeERC20", "ReentrancyGuard", "No direct withdrawal", "No arbitrary external calls"]]
+        ],
+        acceptance: "State transitions are covered across pause, rebalance, and security tests."
+      },
+      {
+        id: "9", title: "Foundry validation matrix", owner: "QA lane", status: "planned",
+        tasks: [
+          ["Factory tests", ["Valid vault", "Duplicate symbol", "Invalid assets", "Bad weights"]],
+          ["Flow tests", ["Deposit", "Redeem", "Fees", "Accounting"]],
+          ["Boundary tests", ["Oracle freshness", "Zero price", "Timestamp equality", "Fee dust"]]
+        ],
+        acceptance: "Every required test maps to a named job and final forge test must pass before promotion."
+      },
+      {
+        id: "10", title: "Agent orchestration and handoff", owner: "Main orchestrator", status: "active",
+        tasks: [
+          ["Maintain lanes", ["Six live GPT agents", "Three secure-gated Claude API lanes", "Distinct owners"]],
+          ["Convert packets", ["Disjoint write sets", "Stable interfaces first", "Feature tests beside feature slices"]],
+          ["Maintain handoff", ["Files touched", "Tests run", "Known risks", "Next action"]]
+        ],
+        acceptance: "Every lane can be promoted into a bounded implementation packet."
+      }
+    ];
+
+    const packets = [
+      ["1", "Scaffold", "Foundry config, README, shared libraries, mock ERC20"],
+      ["2", "Registries", "Asset and adapter approval policy"],
+      ["3", "Oracle", "Interface and mock price router"],
+      ["4", "Adapter", "Interface and mock spot adapter"],
+      ["5", "Factory", "Deployment and factory tests"],
+      ["6", "Accounting", "Vault state, NAV, PPS, accounting tests"],
+      ["7", "Flows", "Deposit and redemption tests"],
+      ["8", "Controls", "Fees, pause, security gates"],
+      ["9", "Rebalance", "Cooldown and sell-to-quote redeploy"],
+      ["10", "Hardening", "Integration fixtures and final forge test"]
+    ];
+
+    let state = {
+      nav: 0,
+      shares: 0,
+      idle: 0,
+      holderFees: 0,
+      pauseIndex: 0,
+      selectedPacket: 0,
+      selectedJobId: "0",
+      treeFilter: "",
+      statusFilter: "all",
+      pauseModes: ["ACTIVE", "PAUSED_DEPOSITS", "PAUSED_REBALANCE", "PAUSED_DEPOSITS_AND_REBALANCE", "PAUSED_ALL"],
+      trace: []
+    };
+
+    function statusClass(status) {
+      if (status === "active") return "active";
+      if (status === "secure-gated") return "gated";
+      if (status === "ready") return "ready";
+      if (status === "blocked") return "blocked";
+      return "planned";
+    }
+
+    function renderPacketGates() {
+      const table = document.getElementById("packetGateTable");
+      if (!table) return;
+      table.innerHTML = "<thead><tr><th>Packet</th><th>Owner</th><th>Prerequisite gate</th><th>Write set</th><th>Status</th><th>Scope correction</th></tr></thead><tbody>" +
+        packetGates.map(packet => "<tr>" +
+          "<td>" + packet.packet + "</td>" +
+          "<td>" + packet.owner + "</td>" +
+          "<td>" + packet.gate + "</td>" +
+          "<td>" + packet.writeSet + "</td>" +
+          "<td><span class=\"status-pill " + statusClass(packet.status) + "\">" + packet.status + "</span></td>" +
+          "<td>" + packet.scope + "</td>" +
+          "</tr>").join("") + "</tbody>";
+    }
+
+    function renderAgents() {
+      const grid = document.getElementById("agentGrid");
+      grid.innerHTML = agents.map(agent => `
+        <article class="agent">
+          <div class="agent-name"><span>${agent.name}</span><span class="status-pill ${statusClass(agent.status)}">${agent.status}</span></div>
+          <small>${agent.kind} / ${agent.effort}</small>
+          <p class="subtle">${agent.role}</p>
+        </article>
+      `).join("");
+    }
+
+    function renderTree() {
+      document.getElementById("jobCount").textContent = jobs.length;
+      const tree = document.getElementById("taskTree");
+      const filtered = jobs.filter(job => {
+        const haystack = [job.id, job.title, job.owner, job.status, job.acceptance, ...job.tasks.flatMap(task => [task[0], ...task[1]])].join(" ").toLowerCase();
+        const matchesText = haystack.includes(state.treeFilter.toLowerCase());
+        const matchesStatus = state.statusFilter === "all" || job.status === state.statusFilter;
+        return matchesText && matchesStatus;
+      });
+      if (filtered.length === 0) {
+        tree.innerHTML = `<div class="flat-panel"><span class="status-pill planned">empty</span><p class="subtle" style="margin-top:8px;">No jobs match the current filter.</p></div>`;
+      } else {
+        tree.innerHTML = filtered.map((job, index) => `
+        <details ${index < 2 ? "open" : ""}>
+          <summary><span>Job ${job.id} - ${job.title}</span><span class="status-pill ${statusClass(job.status)}">${job.status}</span></summary>
+          <div class="task-body">
+            <p class="subtle">Owner: ${job.owner}</p>
+            ${job.tasks.map(task => `
+              <div class="task">
+                <strong>${task[0]}</strong>
+                <ul class="subtasks">
+                  ${task[1].map(sub => `<li><span class="check"></span><span>${sub}</span></li>`).join("")}
+                </ul>
+              </div>
+            `).join("")}
+          </div>
+        </details>
+      `).join("");
+      }
+
+      document.getElementById("acceptanceList").innerHTML = jobs.map(job => `
+        <div class="event">
+          <code>JOB-${job.id.padStart(2, "0")}</code>
+          <p><b>${job.title}</b><br>${job.acceptance}</p>
+        </div>
+      `).join("");
+    }
+
+    function renderPackets(selected = 0) {
+      state.selectedPacket = selected;
+      const strip = document.getElementById("packetStrip");
+      strip.innerHTML = packets.map((packet, index) => `
+        <button class="packet ${index === selected ? "is-selected" : ""}" data-packet="${index}">
+          <strong>Packet ${packet[0]}</strong>
+          <span>${packet[1]}</span>
+        </button>
+      `).join("");
+      showPacket(selected);
+    }
+
+    function showPacket(index) {
+      state.selectedPacket = index;
+      const packet = packets[index];
+      document.querySelectorAll(".packet").forEach((el, i) => el.classList.toggle("is-selected", i === index));
+      document.getElementById("packetDetail").innerHTML = `
+        <h3>Packet ${packet[0]} - ${packet[1]}</h3>
+        <p class="subtle">${packet[2]}</p>
+        <span class="status-pill ${index === 0 ? "active" : "planned"}">${index === 0 ? "next packet" : "queued"}</span>
+      `;
+      renderState();
+    }
+
+    function money(value) {
+      return Number(value).toLocaleString(undefined, { maximumFractionDigits: 4 });
+    }
+
+    function pps() {
+      if (state.shares === 0) return 1;
+      return state.nav / state.shares;
+    }
+
+    function log(line) {
+      const stamp = new Date().toLocaleTimeString();
+      state.trace.unshift(`[${stamp}] ${line}`);
+      state.trace = state.trace.slice(0, 36);
+      renderState();
+    }
+
+    function renderState() {
+      document.getElementById("navValue").textContent = money(state.nav);
+      document.getElementById("shareValue").textContent = money(state.shares);
+      document.getElementById("ppsValue").textContent = pps().toFixed(4);
+      document.getElementById("idleValue").textContent = money(state.idle);
+      document.getElementById("holderFeeValue").textContent = money(state.holderFees);
+      document.getElementById("pauseValue").textContent = state.pauseModes[state.pauseIndex];
+      document.getElementById("traceLog").textContent = state.trace.join("\n") || "Select a protocol action to run a local trace.";
+      document.getElementById("stateInspector").textContent = JSON.stringify({
+        selectedPacketId: `packet_${packets[state.selectedPacket][0]}`,
+        selectedPacketTitle: packets[state.selectedPacket][1],
+        selectedJobId: state.selectedJobId,
+        treeFilter: state.treeFilter,
+        statusFilter: state.statusFilter,
+        leaseState: "production_review_only",
+        implementationRoot: "sandbox/root requires explicit lease",
+        vault: {
+          navQuote: Number(state.nav.toFixed(4)),
+          totalShares: Number(state.shares.toFixed(4)),
+          pricePerShare: Number(pps().toFixed(6)),
+          idleQuote: Number(state.idle.toFixed(4)),
+          holderFeeNav: Number(state.holderFees.toFixed(4)),
+          pauseMode: state.pauseModes[state.pauseIndex]
+        },
+        claudeApiAgents: claudeAgents.map(agent => ({ name: agent.name, status: agent.status })),
+        recentEventCount: state.trace.length
+      }, null, 2);
+    }
+
+    function runAction(action) {
+      if (action === "deposit") {
+        log("deposit preflight: deadline, pause, approval, adapter, and oracle checks started.");
+        const quote = 10000;
+        const fee = state.shares === 0 ? 0 : quote * 0.005;
+        const holderFee = fee * 0.5;
+        const net = quote - fee;
+        const minted = state.shares === 0 ? net : (state.nav === 0 ? net : net / pps());
+        state.nav += quote - (fee * 0.25) - (fee * 0.25);
+        state.idle += Math.round(net * 0.1);
+        state.holderFees += holderFee;
+        state.shares += minted;
+        log("deposit running: quote transferred, fee split calculated, net amount allocated to mock spots.");
+        log(`deposit: user deposits 10,000 mock USDC; fee=${fee.toFixed(2)}, holder retained=${holderFee.toFixed(2)}, shares minted=${minted.toFixed(4)}.`);
+        log("allocation: 60% WETH mock spot, 40% WBTC mock spot, oracle prices fresh.");
+      }
+      if (action === "redeem") {
+        log("redeem preflight: deadline, full-pause, minQuoteOut, and supply checks started.");
+        if (state.shares <= 0) {
+          log("redeem blocked: no shares exist, so burn and quote return cannot start.");
+          return;
+        }
+        const burn = state.shares * 0.25;
+        const gross = burn * pps();
+        const fee = gross * 0.005;
+        const holderFee = fee * 0.5;
+        state.shares -= burn;
+        state.nav -= gross - holderFee;
+        state.idle = Math.max(0, state.idle - gross * 0.1);
+        state.holderFees += holderFee;
+        log("redeem running: enough mock spot exposure exited to quote and shares burned.");
+        log(`redeem: burns ${burn.toFixed(4)} shares; gross=${gross.toFixed(2)}, fee=${fee.toFixed(2)}, quote out=${(gross - fee).toFixed(2)}.`);
+        log("holder uplift: retained redemption fee stays in NAV for remaining holders.");
+      }
+      if (action === "rebalance") {
+        log("rebalance preflight: creator, cooldown, deadline, weights, caps, and oracle freshness checks started.");
+        log("rebalance: creator request passes cooldown, deadline, SPOT adapter, weight, cap, and oracle freshness checks.");
+        log("rebalance: current mock spot positions sold to quote, then redeployed to 50% WETH / 50% WBTC.");
+      }
+      if (action === "stale") {
+        log("oracle failure: MockOracleRouter price is stale; deposit/rebalance path reverts before value movement.");
+      }
+      if (action === "pause") {
+        state.pauseIndex = (state.pauseIndex + 1) % state.pauseModes.length;
+        log(`pause: mode set to ${state.pauseModes[state.pauseIndex]}; redeem remains available unless PAUSED_ALL.`);
+      }
+      if (action === "fullTrace") {
+        state.nav = 132422.638985;
+        state.shares = 105840;
+        state.idle = 0;
+        state.holderFees = 131.271581;
+        state.pauseIndex = 0;
+        state.trace = fullTrace.slice().reverse();
+        renderState();
+      }
+    }
+
+    function renderClaude() {
+      document.getElementById("claudeTable").innerHTML = `
+        <tr><th>Lane</th><th>Role</th><th>Credential Rule</th><th>Status</th></tr>
+        ${claudeAgents.map(agent => `
+          <tr>
+            <td>${agent.name}</td>
+            <td>${agent.role}</td>
+            <td>${agent.credential}</td>
+            <td><span class="status-pill gated">${agent.status}</span></td>
+          </tr>
+        `).join("")}
+      `;
+    }
+
+    document.addEventListener("click", event => {
+      const nav = event.target.closest("[data-scroll]");
+      if (nav) {
+        document.querySelectorAll("[data-scroll]").forEach(button => button.classList.remove("is-current"));
+        nav.classList.add("is-current");
+        document.querySelector(nav.dataset.scroll).scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      const packet = event.target.closest("[data-packet]");
+      if (packet) showPacket(Number(packet.dataset.packet));
+      const action = event.target.closest("[data-action]");
+      if (action) runAction(action.dataset.action);
+    });
+
+    document.getElementById("treeSearch").addEventListener("input", event => {
+      state.treeFilter = event.target.value;
+      renderTree();
+      renderState();
+    });
+
+    document.getElementById("statusFilter").addEventListener("change", event => {
+      state.statusFilter = event.target.value;
+      renderTree();
+      renderState();
+    });
+
+    renderPacketGates();
+    renderAgents();
+    renderTree();
+    renderPackets();
+    renderClaude();
+    renderState();
+  </script>
+</body>
+</html>
