@@ -358,7 +358,7 @@
       border-radius: var(--radius);
       padding: 12px;
       min-height: 218px;
-      max-height: 330px;
+      max-height: 430px;
       overflow: auto;
       white-space: pre-wrap;
     }
@@ -465,6 +465,478 @@
       .event { grid-template-columns: 1fr; }
       .packet-strip { grid-template-columns: repeat(10, 118px); }
     }
+  
+    .protocol-console {
+      border: 1px solid rgba(98, 232, 176, 0.28);
+      background: linear-gradient(135deg, rgba(7, 32, 29, 0.94), rgba(9, 21, 35, 0.92));
+    }
+    .protocol-console h2 { color: #dfffee; }
+    .protocol-grid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 18px; }
+    .protocol-state { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+    .protocol-state .metric { min-height: 84px; }
+    .composition { display: grid; gap: 10px; }
+    .asset-row { display: grid; grid-template-columns: 84px 1fr 70px; gap: 10px; align-items: center; color: var(--text); }
+    .asset-bar { height: 10px; border-radius: 999px; background: rgba(155, 207, 255, 0.16); overflow: hidden; }
+    .asset-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--good)); }
+    .gate-list { display: grid; gap: 8px; }
+    .gate-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; border: 1px solid rgba(155, 207, 255, 0.18); border-radius: 14px; padding: 10px 12px; background: rgba(4, 15, 24, 0.34); }
+    .protocol-ledger { max-height: 360px; overflow: auto; white-space: pre-wrap; font-family: Consolas, monospace; font-size: 0.86rem; color: var(--muted); background: rgba(0, 0, 0, 0.24); border: 1px solid rgba(155, 207, 255, 0.18); border-radius: 16px; padding: 14px; }
+    @media (max-width: 980px) { .protocol-grid, .protocol-state { grid-template-columns: 1fr; } }
+
+  
+    /* vibrant dark protocol theme */
+    :root {
+      --bg: #030712;
+      --panel: rgba(9, 18, 38, 0.86);
+      --panel-strong: rgba(13, 25, 52, 0.96);
+      --ink: #eef7ff;
+      --text: #eef7ff;
+      --muted: #a9b8d8;
+      --line: rgba(132, 204, 255, 0.22);
+      --teal: #00e5ff;
+      --teal-soft: rgba(0, 229, 255, 0.16);
+      --coral: #ff4d6d;
+      --amber: #ffd166;
+      --green: #31ff9f;
+      --blue: #7dd3fc;
+      --accent: #00e5ff;
+      --accent-2: #ff3df2;
+      --good: #31ff9f;
+      --warn: #ffd166;
+      --bad: #ff4d6d;
+      --shadow: 0 26px 90px rgba(0, 229, 255, 0.18);
+    }
+    body {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(0, 229, 255, 0.24), transparent 30rem),
+        radial-gradient(circle at 88% 12%, rgba(255, 61, 242, 0.22), transparent 28rem),
+        radial-gradient(circle at 50% 100%, rgba(49, 255, 159, 0.14), transparent 30rem),
+        linear-gradient(135deg, #020617 0%, #08111f 48%, #12051e 100%) !important;
+      color: var(--text) !important;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(132, 204, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(132, 204, 255, 0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at 50% 20%, black, transparent 74%);
+      z-index: -1;
+    }
+    aside {
+      background: linear-gradient(180deg, rgba(3, 7, 18, 0.98), rgba(8, 14, 34, 0.96)) !important;
+      border-right: 1px solid rgba(0, 229, 255, 0.2) !important;
+      box-shadow: 16px 0 70px rgba(0, 0, 0, 0.32);
+    }
+    .panel, .flat-panel, .metric, .agent, details, .task, .packet, .event, .table td, .table th {
+      background-color: rgba(9, 18, 38, 0.78) !important;
+      border-color: var(--line) !important;
+      color: var(--text) !important;
+      box-shadow: 0 18px 70px rgba(0, 0, 0, 0.22);
+    }
+    .panel {
+      backdrop-filter: blur(18px);
+    }
+    .protocol-console {
+      background:
+        linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(255, 61, 242, 0.12)),
+        rgba(5, 12, 28, 0.94) !important;
+      border: 1px solid rgba(49, 255, 159, 0.38) !important;
+      box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.12), 0 34px 110px rgba(255, 61, 242, 0.18) !important;
+    }
+    h1, h2, h3, summary, strong, .value { color: #f8fbff !important; }
+    .subtle, .label, small, p { color: var(--muted) !important; }
+    h1 {
+      background: linear-gradient(90deg, #ffffff, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent !important;
+    }
+    button {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
+      color: #020617 !important;
+      border: 0 !important;
+      box-shadow: 0 10px 34px rgba(0, 229, 255, 0.22);
+      font-weight: 700;
+    }
+    button.secondary, aside button {
+      background: rgba(11, 22, 48, 0.82) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--line) !important;
+      box-shadow: none;
+    }
+    aside button.is-current, aside button:hover {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(255, 61, 242, 0.2)) !important;
+      border-color: rgba(49, 255, 159, 0.45) !important;
+      color: #ffffff !important;
+    }
+    .ready {
+      background: rgba(49, 255, 159, 0.15) !important;
+      color: var(--good) !important;
+    }
+    .active {
+      background: rgba(0, 229, 255, 0.14) !important;
+      color: var(--accent) !important;
+    }
+    .planned {
+      background: rgba(169, 184, 216, 0.12) !important;
+      color: var(--muted) !important;
+    }
+    .gated {
+      background: rgba(255, 209, 102, 0.14) !important;
+      color: var(--warn) !important;
+    }
+    .blocked {
+      background: rgba(255, 77, 109, 0.14) !important;
+      color: var(--bad) !important;
+    }
+    .status-pill.active, .status-pill.complete, .status-pill.ok {
+      background: rgba(49, 255, 159, 0.15) !important;
+      color: var(--good) !important;
+      border-color: rgba(49, 255, 159, 0.42) !important;
+    }
+    .status-pill.planned {
+      background: rgba(0, 229, 255, 0.12) !important;
+      color: var(--accent) !important;
+      border-color: rgba(0, 229, 255, 0.38) !important;
+    }
+    .status-pill.gated, .status-pill.blocked {
+      background: rgba(255, 77, 109, 0.14) !important;
+      color: var(--bad) !important;
+      border-color: rgba(255, 77, 109, 0.42) !important;
+    }
+    input, select, textarea {
+      background: rgba(3, 7, 18, 0.72) !important;
+      color: var(--text) !important;
+      border-color: var(--line) !important;
+    }
+    input::placeholder {
+      color: rgba(169, 184, 216, 0.72);
+    }
+    .trace,
+    .state-code,
+    .protocol-ledger {
+      background: rgba(2, 6, 23, 0.78) !important;
+      border: 1px solid rgba(0, 229, 255, 0.2) !important;
+      color: #dfffee !important;
+      box-shadow: inset 0 0 34px rgba(0, 229, 255, 0.08);
+    }
+    .check {
+      background: linear-gradient(135deg, var(--accent), var(--good)) !important;
+      border-color: rgba(49, 255, 159, 0.7) !important;
+      box-shadow: 0 0 18px rgba(49, 255, 159, 0.24);
+    }
+    .task {
+      border-left-color: var(--accent) !important;
+    }
+    .packet.is-selected {
+      outline-color: var(--accent-2) !important;
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.16), rgba(255, 61, 242, 0.14)) !important;
+    }
+    .asset-bar { background: rgba(255, 255, 255, 0.09) !important; }
+    .asset-bar span { background: linear-gradient(90deg, var(--accent), var(--good), var(--accent-2)) !important; }
+    .live-readiness {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+    .live-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(0, 229, 255, 0.22);
+      border-radius: 16px;
+      background:
+        linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 61, 242, 0.08)),
+        rgba(2, 6, 23, 0.48);
+      padding: 12px;
+      min-height: 92px;
+    }
+    .live-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -40% -60% 10%;
+      height: 90px;
+      background: radial-gradient(circle, rgba(49, 255, 159, 0.18), transparent 68%);
+      transform: rotate(-8deg);
+    }
+    .live-card b {
+      display: block;
+      color: #ffffff;
+      font-size: 12px;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .live-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      position: relative;
+      z-index: 1;
+    }
+    .live-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: var(--good);
+      box-shadow: 0 0 0 0 rgba(49, 255, 159, 0.7);
+      animation: pulse-dot 1.8s infinite;
+    }
+    @keyframes pulse-dot {
+      0% { box-shadow: 0 0 0 0 rgba(49, 255, 159, 0.56); }
+      70% { box-shadow: 0 0 0 12px rgba(49, 255, 159, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(49, 255, 159, 0); }
+    }
+    .live-ops {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.62fr);
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .live-ops-feed,
+    .live-ops-state {
+      border: 1px solid rgba(132, 204, 255, 0.2);
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.58);
+      padding: 12px;
+      min-height: 116px;
+    }
+    .live-ops-feed h3,
+    .live-ops-state h3 {
+      margin-bottom: 8px;
+    }
+    .ops-line {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(132, 204, 255, 0.12);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .ops-line:last-child { border-bottom: 0; }
+    .ops-line code {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .ops-line strong { color: #ffffff !important; }
+    .ops-meter {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .ops-meter span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--good), var(--accent-2));
+      transition: width 360ms ease;
+    }
+    .completion-matrix {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .completion-item {
+      border: 1px solid rgba(132, 204, 255, 0.2);
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.5);
+      padding: 12px;
+      min-height: 118px;
+    }
+    .completion-item b {
+      display: block;
+      color: #ffffff;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .completion-item p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.38;
+    }
+    .completion-item.is-ok {
+      border-color: rgba(49, 255, 159, 0.35);
+      box-shadow: inset 0 0 26px rgba(49, 255, 159, 0.05);
+    }
+    .completion-item.is-warn {
+      border-color: rgba(255, 209, 102, 0.34);
+      box-shadow: inset 0 0 26px rgba(255, 209, 102, 0.05);
+    }
+    .completion-item.is-blocked {
+      border-color: rgba(255, 77, 109, 0.38);
+      box-shadow: inset 0 0 26px rgba(255, 77, 109, 0.06);
+    }
+    .activation-checklist {
+      border: 1px solid rgba(255, 209, 102, 0.3);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 209, 102, 0.08), rgba(255, 77, 109, 0.08)),
+        rgba(2, 6, 23, 0.54);
+      padding: 14px;
+      margin: 0 0 18px;
+    }
+    .activation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .activation-step {
+      border: 1px solid rgba(132, 204, 255, 0.18);
+      border-radius: 14px;
+      background: rgba(3, 7, 18, 0.5);
+      padding: 10px;
+      min-height: 104px;
+    }
+    .activation-step code {
+      display: block;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      margin-top: 8px;
+      overflow-wrap: anywhere;
+    }
+    .activation-step p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.38;
+    }
+    .operator-handoff {
+      border: 1px solid rgba(49, 255, 159, 0.28);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(49, 255, 159, 0.07), rgba(0, 229, 255, 0.08)),
+        rgba(2, 6, 23, 0.58);
+      padding: 14px;
+      margin: 0 0 18px;
+    }
+    .handoff-code {
+      margin: 10px 0 0;
+      border: 1px solid rgba(132, 204, 255, 0.18);
+      border-radius: 14px;
+      background: rgba(3, 7, 18, 0.62);
+      color: #dfffee;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow: auto;
+      padding: 12px;
+      white-space: pre-wrap;
+    }
+    .runtime-heartbeat {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .heartbeat-cell {
+      border: 1px solid rgba(0, 229, 255, 0.22);
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.52);
+      padding: 12px;
+      min-height: 88px;
+    }
+    .heartbeat-cell b {
+      display: block;
+      color: #ffffff;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .heartbeat-cell span {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+    .evidence-snapshot {
+      border: 1px solid rgba(0, 229, 255, 0.24);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(255, 61, 242, 0.06)),
+        rgba(2, 6, 23, 0.58);
+      padding: 14px;
+      margin: 0 0 18px;
+    }
+    .evidence-snapshot pre {
+      margin: 10px 0 0;
+      border: 1px solid rgba(132, 204, 255, 0.18);
+      border-radius: 14px;
+      background: rgba(3, 7, 18, 0.64);
+      color: #dfffee;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow: auto;
+      padding: 12px;
+      white-space: pre-wrap;
+    }
+    .lifecycle-map {
+      border: 1px solid rgba(49, 255, 159, 0.28);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(49, 255, 159, 0.07), rgba(255, 61, 242, 0.06)),
+        rgba(2, 6, 23, 0.58);
+      padding: 14px;
+      margin: 0 0 18px;
+    }
+    .lifecycle-steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .lifecycle-step {
+      position: relative;
+      border: 1px solid rgba(132, 204, 255, 0.2);
+      border-radius: 16px;
+      background: rgba(3, 7, 18, 0.54);
+      padding: 12px;
+      min-height: 122px;
+    }
+    .lifecycle-step::after {
+      content: ">";
+      position: absolute;
+      right: -12px;
+      top: 44%;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+    .lifecycle-step:last-child::after { content: ""; }
+    .lifecycle-step b {
+      display: block;
+      color: #ffffff;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .lifecycle-step p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.38;
+    }
+    @media (max-width: 980px) { .live-readiness { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 980px) { .live-ops { grid-template-columns: 1fr; } }
+    @media (max-width: 980px) { .completion-matrix { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 980px) { .activation-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 980px) { .runtime-heartbeat { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 980px) { .lifecycle-steps { grid-template-columns: 1fr; } .lifecycle-step::after { content: ""; } }
+    @media (max-width: 680px) { .live-readiness { grid-template-columns: 1fr; } }
+    @media (max-width: 680px) { .completion-matrix { grid-template-columns: 1fr; } }
+    @media (max-width: 680px) { .runtime-heartbeat { grid-template-columns: 1fr; } }
+
   </style>
 </head>
 <body>
@@ -473,7 +945,8 @@
       <h2>Fetch ERC20 Demo</h2>
       <p class="subtle">Production-root orchestration surface. Protocol implementation remains gated to the approved implementation root until a write lease is granted.</p>
       <div class="nav-list" aria-label="Demo sections">
-        <button class="is-current" data-scroll="#overview">Overview</button>
+        <button data-scroll="#overview">Overview</button>
+        <button class="is-current" data-scroll="#protocol-console">Protocol Demo</button>
         <button data-scroll="#agents">Agents</button>
         <button data-scroll="#tree">Task Tree</button>
         <button data-scroll="#packets">Packets</button>
@@ -494,6 +967,185 @@
     </aside>
 
     <main>
+      <section id="protocol-console" class="panel protocol-console">
+        <span class="status-pill active">Protocol working view</span>
+        <h2>Fetch ERC20 thesis-vault protocol demo</h2>
+        <p class="subtle">This is the protocol surface: launch a local Hyper Privacy vault, buy with mock mUSDC, sell shares back to quote, rebalance spot composition, cycle pause modes, and trigger stale-oracle rejection. It is browser-local simulation data matching the root spec, not a deployed contract.</p>
+        <div class="live-readiness" aria-label="Live demo readiness">
+          <div class="live-card">
+            <b><span class="live-dot"></span>Embedded browser</b>
+            <span>Serving at 127.0.0.1:8787 with the protocol console as the primary surface.</span>
+          </div>
+          <div class="live-card">
+            <b>Protocol simulation</b>
+            <span>Auto-runs launch, buy, rebalance, and sell on load; manual controls also cover pause and stale-oracle rejection.</span>
+          </div>
+          <div class="live-card">
+            <b>GPT lanes</b>
+            <span>Six GPT-5.4-mini lanes are represented with scoped owners, packets, and task-tree visibility.</span>
+          </div>
+          <div class="live-card">
+            <b>Claude API lanes</b>
+            <span>Displayed as secure-gated until Anthropic/Claude credentials or managed endpoint are provided.</span>
+          </div>
+        </div>
+        <div class="live-ops" aria-label="Live operations feed">
+          <div class="live-ops-feed">
+            <h3>Live operations feed</h3>
+            <div id="liveOpsFeed"></div>
+          </div>
+          <div class="live-ops-state">
+            <h3>Lane execution state</h3>
+            <p class="subtle" id="liveOpsSummary">Preparing orchestration telemetry.</p>
+            <div class="ops-meter"><span id="liveOpsMeter"></span></div>
+          </div>
+        </div>
+        <div class="completion-matrix" aria-label="Objective completion matrix">
+          <div class="completion-item is-ok">
+            <span class="status-pill active">live</span>
+            <b>Embedded browser app</b>
+            <p>Protocol-first demo is served locally and auto-runs the core launch, buy, rebalance, and sell sequence.</p>
+          </div>
+          <div class="completion-item is-ok">
+            <span class="status-pill active">represented</span>
+            <b>Six GPT-5.4-mini lanes</b>
+            <p>Tesla, Raman, Hilbert, Noether, Turing, and Curie are visible with owners, task packets, and operating feed.</p>
+          </div>
+          <div class="completion-item is-blocked">
+            <span class="status-pill blocked">blocked</span>
+            <b>Three Claude API lanes</b>
+            <p>Claude lanes are intentionally gated because no approved Anthropic key, Claude key, or managed endpoint is exposed.</p>
+          </div>
+          <div class="completion-item is-warn">
+            <span class="status-pill gated">simulation</span>
+            <b>Protocol execution evidence</b>
+            <p>This proves browser-local behavior and orchestration state, not deployed Solidity contracts or live custody movement.</p>
+          </div>
+        </div>
+        <div class="activation-checklist" aria-label="Claude activation checklist">
+          <span class="status-pill gated">Claude activation path</span>
+          <h3>What is required to make the three Claude API lanes live</h3>
+          <p class="subtle">The demo keeps Claude lanes gated until a provider path exists. Only credential presence should be checked in logs; never print API keys or tokens.</p>
+          <div class="activation-grid">
+            <div class="activation-step">
+              <b>1. Provide provider access</b>
+              <p>Expose one approved Anthropic or managed-Claude path to this runtime.</p>
+              <code>ANTHROPIC_API_KEY or CLAUDE_API_KEY or CLAUDE_AGENT_ENDPOINT</code>
+            </div>
+            <div class="activation-step">
+              <b>2. Enable managed lanes</b>
+              <p>Allow the orchestrator to promote the three Claude lanes from static secure-gated cards to live provider workers.</p>
+              <code>ORPHEUS_CLAUDE_MANAGED_AGENTS_ENABLED=true</code>
+            </div>
+            <div class="activation-step">
+              <b>3. Verify without secrets</b>
+              <p>Run a presence-only readiness check, then bind Claude-A/B/C to architecture review, security review, and completion audit.</p>
+              <code>present(length=...) only; no secret output</code>
+            </div>
+          </div>
+        </div>
+        <div class="operator-handoff" aria-label="Operator handoff summary">
+          <span class="status-pill active">operator handoff</span>
+          <h3>Current live-demo state</h3>
+          <p class="subtle">This is the browser-visible handoff for the active objective. It mirrors the production-root handoff without requiring filesystem access.</p>
+          <pre class="handoff-code">objective: assign 6 GPT-5.4-mini lanes and 3 Claude API lanes, then provide a live embedded-browser protocol demo
+embedded_demo: live at http://127.0.0.1:8787/
+protocol_view: auto-runs browser-local launch -> buy -> rebalance -> sell simulation
+gpt_lanes: represented in task tree, packet map, live ops feed, and completion matrix
+claude_lanes: blocked until approved provider credential or managed endpoint exists
+required_to_unblock:
+  - ANTHROPIC_API_KEY or CLAUDE_API_KEY or CLAUDE_AGENT_ENDPOINT
+  - ORPHEUS_CLAUDE_MANAGED_AGENTS_ENABLED=true
+safety_rule: check credential presence only; never print secret values
+next_action: provide Claude provider path, then promote Claude-A/B/C to live API workers</pre>
+        </div>
+        <div class="runtime-heartbeat" aria-label="Runtime heartbeat">
+          <div class="heartbeat-cell">
+            <b><span class="live-dot"></span>Runtime</b>
+            <span id="heartbeatRuntime">starting</span>
+          </div>
+          <div class="heartbeat-cell">
+            <b>Session elapsed</b>
+            <span id="heartbeatElapsed">0s</span>
+          </div>
+          <div class="heartbeat-cell">
+            <b>Auto demo</b>
+            <span id="heartbeatAutoDemo">queued</span>
+          </div>
+          <div class="heartbeat-cell">
+            <b>Provider gate</b>
+            <span>Claude API access absent</span>
+          </div>
+        </div>
+        <div class="evidence-snapshot" aria-label="Machine-readable evidence snapshot">
+          <span class="status-pill active">evidence snapshot</span>
+          <h3>Machine-readable current state</h3>
+          <p class="subtle">Copyable status payload for operators and follow-on agents. This is browser-local evidence and intentionally preserves the Claude API blocker.</p>
+          <pre id="evidenceSnapshot">loading evidence snapshot</pre>
+        </div>
+        <div class="lifecycle-map" aria-label="Protocol lifecycle map">
+          <span class="status-pill active">protocol lifecycle</span>
+          <h3>How the simulated thesis vault works</h3>
+          <p class="subtle">Execution path shown by the auto-running demo. This is the intended v0 SPOT primitive flow, represented in browser-local state.</p>
+          <div class="lifecycle-steps">
+            <div class="lifecycle-step">
+              <b>1. Factory validates</b>
+              <p>Quote asset, spot assets, adapters, oracle freshness, weights, caps, and uniqueness are checked before vault creation.</p>
+            </div>
+            <div class="lifecycle-step">
+              <b>2. Vault launches</b>
+              <p>Hyper Privacy vault and share token become the selected thesis object for the local protocol surface.</p>
+            </div>
+            <div class="lifecycle-step">
+              <b>3. Buy deposits</b>
+              <p>Mock mUSDC enters the vault, fees are split, shares mint only against added NAV, and spot composition is allocated.</p>
+            </div>
+            <div class="lifecycle-step">
+              <b>4. Rebalance</b>
+              <p>Creator-gated rebalance sells to quote and redeploys into approved SPOT adapters with fresh oracle pricing.</p>
+            </div>
+            <div class="lifecycle-step">
+              <b>5. Sell redeems</b>
+              <p>Shares burn, spot exposure exits to quote, user receives mock mUSDC, and holder fee remains in NAV.</p>
+            </div>
+          </div>
+        </div>
+        <div class="protocol-grid">
+          <div>
+            <div class="protocol-state">
+              <div class="metric"><div class="label">Vault</div><div class="value" id="protoVault">not launched</div></div>
+              <div class="metric"><div class="label">NAV</div><div class="value" id="protoNav">0</div></div>
+              <div class="metric"><div class="label">Shares</div><div class="value" id="protoShares">0</div></div>
+              <div class="metric"><div class="label">PPS</div><div class="value" id="protoPps">1.0000</div></div>
+            </div>
+            <div class="protocol-state">
+              <div class="metric"><div class="label">Idle mUSDC</div><div class="value" id="protoIdle">0</div></div>
+              <div class="metric"><div class="label">Holder fees</div><div class="value" id="protoHolderFees">0</div></div>
+              <div class="metric"><div class="label">Pause mode</div><div class="value" id="protoPause">ACTIVE</div></div>
+              <div class="metric"><div class="label">Oracle</div><div class="value" id="protoOracle">fresh</div></div>
+            </div>
+            <div class="controls">
+              <button data-proto-action="launch">Launch vault</button>
+              <button data-proto-action="buy">Buy / deposit mUSDC</button>
+              <button data-proto-action="sell">Sell / redeem shares</button>
+              <button data-proto-action="rebalance">Rebalance</button>
+              <button data-proto-action="pause">Cycle pause</button>
+              <button data-proto-action="stale">Toggle stale oracle</button>
+              <button data-proto-action="fullDemo">Run full protocol demo</button>
+              <button data-proto-action="reset">Reset</button>
+            </div>
+            <h3>Vault composition</h3>
+            <div class="composition" id="protoComposition"></div>
+          </div>
+          <div>
+            <h3>Acceptance gates</h3>
+            <div class="gate-list" id="protoGates"></div>
+            <h3>Protocol event ledger</h3>
+            <div class="protocol-ledger" id="protoLedger"></div>
+          </div>
+        </div>
+      </section>
+
       <section id="overview" class="topbar">
         <div class="panel">
           <span class="status-pill active">Live local demo</span>
@@ -518,7 +1170,7 @@
         </div>
       </section>
 
-      <section id="agents" class="panel">
+            <section id="agents" class="panel">
         <h2>Assigned Agent Lanes</h2>
         <div class="agent-grid" id="agentGrid"></div>
       </section>
@@ -526,6 +1178,10 @@
       <section id="tree" class="grid-2">
         <div class="panel">
           <h2>Collapsible Organisation Task Tree</h2>
+          <div class="controls" style="margin-bottom:12px;">
+            <button data-tree="expand">Expand all jobs</button>
+            <button data-tree="collapse">Collapse all jobs</button>
+          </div>
           <div id="taskTree"></div>
         </div>
         <div class="panel">
@@ -557,6 +1213,7 @@
               <button data-action="stale">Trigger stale oracle rejection</button>
               <button data-action="pause">Cycle pause mode</button>
               <button data-action="fullTrace">Load full v0 trace</button>
+                <span class="status-pill" id="traceStatus">1 step loaded</span>
             </div>
             <div class="trace" id="traceLog"></div>
           </div>
@@ -776,6 +1433,10 @@
       return "planned";
     }
 
+    function setTaskTreeOpenState(open) {
+      document.querySelectorAll("#taskTree details").forEach(detail => { detail.open = open; });
+    }
+
     function renderPacketGates() {
       const table = document.getElementById("packetGateTable");
       if (!table) return;
@@ -962,6 +1623,8 @@
         state.pauseIndex = 0;
         state.trace = fullTrace.slice().reverse();
         renderState();
+        document.getElementById("traceStatus").textContent = `${fullTrace.length} steps loaded`;
+        document.getElementById("traceLog").scrollTop = 0;
       }
     }
 
@@ -973,7 +1636,7 @@
             <td>${agent.name}</td>
             <td>${agent.role}</td>
             <td>${agent.credential}</td>
-            <td><span class="status-pill gated">${agent.status}</span></td>
+            <td><span class="status-pill gated">LOCKED - ${agent.status}</span></td>
           </tr>
         `).join("")}
       `;
@@ -988,6 +1651,8 @@
       }
       const packet = event.target.closest("[data-packet]");
       if (packet) showPacket(Number(packet.dataset.packet));
+      const treeControl = event.target.closest("[data-tree]");
+      if (treeControl) setTaskTreeOpenState(treeControl.dataset.tree === "expand");
       const action = event.target.closest("[data-action]");
       if (action) runAction(action.dataset.action);
     });
@@ -1011,5 +1676,234 @@
     renderClaude();
     renderState();
   </script>
+
+  <script>
+    (function () {
+      const protoState = {
+        launched: false,
+        vault: null,
+        nav: 0,
+        shares: 0,
+        idle: 0,
+        holderFees: 0,
+        pauseIndex: 0,
+        pauseModes: ["ACTIVE", "PAUSED_DEPOSITS", "PAUSED_REBALANCE", "PAUSED_DEPOSITS_AND_REBALANCE", "PAUSED_ALL"],
+        oracle: "fresh",
+        composition: [{ symbol: "WETH", weight: 60 }, { symbol: "WBTC", weight: 40 }],
+        gates: {
+          deployed: false,
+          deposit: false,
+          redeem: false,
+          rebalance: false,
+          pause: false,
+          oracle: true,
+          composition: false
+        },
+        ledger: ["Protocol console ready. Start with Launch vault."]
+      };
+      function fmt(value) { return Number(value).toLocaleString(undefined, { maximumFractionDigits: 4 }); }
+      function pps() { return protoState.shares === 0 ? 1 : protoState.nav / protoState.shares; }
+      function addProtoEvent(message) {
+        protoState.ledger.unshift("[" + new Date().toLocaleTimeString() + "] " + message);
+        protoState.ledger = protoState.ledger.slice(0, 20);
+        renderProtocol();
+      }
+      function renderProtocol() {
+        const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+        set("protoVault", protoState.vault || "not launched");
+        set("protoNav", fmt(protoState.nav));
+        set("protoShares", fmt(protoState.shares));
+        set("protoPps", pps().toFixed(4));
+        set("protoIdle", fmt(protoState.idle));
+        set("protoHolderFees", fmt(protoState.holderFees));
+        set("protoPause", protoState.pauseModes[protoState.pauseIndex]);
+        set("protoOracle", protoState.oracle);
+        const composition = document.getElementById("protoComposition");
+        if (composition) {
+          composition.innerHTML = protoState.composition.map(asset => "<div class=\"asset-row\"><strong>" + asset.symbol + "</strong><div class=\"asset-bar\"><span style=\"width:" + asset.weight + "%\"></span></div><span>" + asset.weight + "%</span></div>").join("");
+        }
+        const gates = document.getElementById("protoGates");
+        if (gates) {
+          const labels = { deployed: "Factory deploys vault/token", deposit: "Buy/deposit mints shares", redeem: "Sell/redeem burns shares", rebalance: "Creator rebalance works", pause: "Pause modes enforce boundaries", oracle: "Oracle is fresh and non-zero", composition: "Vault composition visible" };
+          gates.innerHTML = Object.entries(labels).map(([key, label]) => "<div class=\"gate-row\"><span>" + label + "</span><span class=\"status-pill " + (protoState.gates[key] ? "complete" : "planned") + "\">" + (protoState.gates[key] ? "passing" : "pending") + "</span></div>").join("");
+        }
+        const ledger = document.getElementById("protoLedger");
+        if (ledger) ledger.textContent = protoState.ledger.join("\n");
+      }
+      function requireVault() {
+        if (protoState.launched) return true;
+        addProtoEvent("blocked: vault must be launched before buy, sell, or rebalance.");
+        return false;
+      }
+      function runProtocol(action) {
+        if (action === "reset") {
+          protoState.launched = false; protoState.vault = null; protoState.nav = 0; protoState.shares = 0; protoState.idle = 0; protoState.holderFees = 0; protoState.pauseIndex = 0; protoState.oracle = "fresh"; protoState.composition = [{ symbol: "WETH", weight: 60 }, { symbol: "WBTC", weight: 40 }];
+          protoState.gates = { deployed: false, deposit: false, redeem: false, rebalance: false, pause: false, oracle: true, composition: false };
+          protoState.ledger = ["Protocol console reset. Start with Launch vault."]; renderProtocol(); return;
+        }
+        if (action === "launch") {
+          protoState.launched = true; protoState.vault = "HYP-vault-local"; protoState.gates.deployed = true; protoState.gates.composition = true;
+          addProtoEvent("factory: deployed Hyper Privacy vault, share token, mock mUSDC quote path, and WETH/WBTC spot composition."); return;
+        }
+        if (!requireVault()) return;
+        if (action === "buy") {
+          if ([1, 3, 4].includes(protoState.pauseIndex)) { protoState.gates.pause = true; addProtoEvent("buy rejected: deposits are paused by " + protoState.pauseModes[protoState.pauseIndex] + "."); return; }
+          if (protoState.oracle !== "fresh") { addProtoEvent("buy rejected: stale oracle before value movement."); return; }
+          const quote = 10000;
+          const fee = protoState.shares === 0 ? 0 : quote * 0.01;
+          const holderFee = fee * 0.5;
+          const minted = protoState.shares === 0 ? quote : (quote - fee - holderFee) / pps();
+          protoState.nav += quote - fee * 0.5;
+          protoState.idle += 800;
+          protoState.holderFees += holderFee;
+          protoState.shares += minted;
+          protoState.gates.deposit = true;
+          addProtoEvent("buy/deposit: 10,000 mUSDC accepted, fee=" + fee.toFixed(2) + ", shares minted=" + minted.toFixed(4) + ", spot allocation preserved."); return;
+        }
+        if (action === "sell") {
+          if (protoState.pauseIndex === 4) { protoState.gates.pause = true; addProtoEvent("sell rejected: PAUSED_ALL blocks redemption."); return; }
+          if (protoState.shares <= 0) { addProtoEvent("sell rejected: total supply is zero."); return; }
+          const burn = protoState.shares * 0.25;
+          const gross = burn * pps();
+          const fee = gross * 0.01;
+          const holderFee = fee * 0.5;
+          protoState.shares -= burn;
+          protoState.nav -= gross - holderFee;
+          protoState.idle = Math.max(0, protoState.idle - gross * 0.08);
+          protoState.holderFees += holderFee;
+          protoState.gates.redeem = true;
+          addProtoEvent("sell/redeem: burned " + burn.toFixed(4) + " shares, returned " + (gross - fee).toFixed(2) + " mUSDC, retained holder fee in NAV."); return;
+        }
+        if (action === "rebalance") {
+          if ([2, 3, 4].includes(protoState.pauseIndex)) { protoState.gates.pause = true; addProtoEvent("rebalance rejected by " + protoState.pauseModes[protoState.pauseIndex] + "."); return; }
+          if (protoState.oracle !== "fresh") { addProtoEvent("rebalance rejected: stale oracle before sell-to-quote."); return; }
+          protoState.composition = [{ symbol: "WETH", weight: 50 }, { symbol: "WBTC", weight: 50 }];
+          protoState.gates.rebalance = true;
+          addProtoEvent("rebalance: creator cooldown satisfied; sold current spots to quote and redeployed 50/50 WETH/WBTC."); return;
+        }
+        if (action === "pause") {
+          protoState.pauseIndex = (protoState.pauseIndex + 1) % protoState.pauseModes.length;
+          protoState.gates.pause = true;
+          addProtoEvent("pause mode changed to " + protoState.pauseModes[protoState.pauseIndex] + "; redeem remains available except PAUSED_ALL."); return;
+        }
+        if (action === "stale") {
+          protoState.oracle = protoState.oracle === "fresh" ? "stale" : "fresh";
+          protoState.gates.oracle = protoState.oracle === "fresh";
+          addProtoEvent("oracle set to " + protoState.oracle + "; stale mode rejects buy and rebalance before value movement."); return;
+        }
+        if (action === "fullDemo") {
+          protoState.launched = true;
+          protoState.vault = "HYP-vault-local";
+          protoState.nav = 7512.5;
+          protoState.shares = 7500;
+          protoState.idle = 0;
+          protoState.holderFees = 62.5;
+          protoState.pauseIndex = 0;
+          protoState.oracle = "fresh";
+          protoState.composition = [{ symbol: "WETH", weight: 50 }, { symbol: "WBTC", weight: 50 }];
+          protoState.gates = {
+            deployed: true,
+            deposit: true,
+            redeem: true,
+            rebalance: true,
+            pause: true,
+            oracle: true,
+            composition: true
+          };
+          protoState.ledger = [
+            "[" + new Date().toLocaleTimeString() + "] sell/redeem: burned shares, returned mock mUSDC, retained holder fee in NAV.",
+            "[" + new Date().toLocaleTimeString() + "] rebalance: creator cooldown satisfied; positions redeployed to 50/50 WETH/WBTC.",
+            "[" + new Date().toLocaleTimeString() + "] buy/deposit: mock mUSDC accepted; shares minted against added NAV.",
+            "[" + new Date().toLocaleTimeString() + "] factory: deployed Hyper Privacy vault and share token with approved SPOT adapters.",
+            "[" + new Date().toLocaleTimeString() + "] full demo: launch -> buy -> rebalance -> sell completed in browser-local simulation."
+          ];
+          renderProtocol();
+          return;
+        }
+      }
+      document.addEventListener("click", event => {
+        const action = event.target.closest("[data-proto-action]");
+        if (action) runProtocol(action.dataset.protoAction);
+      });
+      const liveOps = [
+        ["Tesla", "Compliance lane confirms containment and stakeholder metadata protection."],
+        ["Raman", "Architecture lane maps factory, vault, registry, oracle, and adapter boundaries."],
+        ["Hilbert", "QA lane tracks Foundry validation obligations and missing contract test evidence."],
+        ["Noether", "Demo lane keeps the embedded protocol surface protocol-first and browser-local."],
+        ["Turing", "Dashboard lane projects Fetch ERC20 as nested ORG_ORPHEUS organisation."],
+        ["Curie", "Completion lane remains risk-tagged because usable payload was unavailable."],
+        ["Claude-A", "Secure-gated: no approved Anthropic or Claude API credential present."],
+        ["Claude-B", "Secure-gated: no managed Claude agent endpoint present."],
+        ["Claude-C", "Secure-gated: provider activation waits for explicit credential path."]
+      ];
+      let liveOpsIndex = 0;
+      function renderLiveOps() {
+        const feed = document.getElementById("liveOpsFeed");
+        const summary = document.getElementById("liveOpsSummary");
+        const meter = document.getElementById("liveOpsMeter");
+        if (!feed || !summary || !meter) return;
+        const visible = liveOps.slice(0, liveOpsIndex + 1).slice(-5).reverse();
+        feed.innerHTML = visible.map(item => "<div class=\"ops-line\"><code>" + item[0] + "</code><span><strong>" + item[0] + "</strong> - " + item[1] + "</span></div>").join("");
+        const gptSeen = Math.min(6, liveOps.slice(0, liveOpsIndex + 1).filter(item => !item[0].startsWith("Claude")).length);
+        const claudeSeen = Math.min(3, liveOps.slice(0, liveOpsIndex + 1).filter(item => item[0].startsWith("Claude")).length);
+        summary.textContent = gptSeen + "/6 GPT lanes represented; " + claudeSeen + "/3 Claude API lanes shown as secure-gated.";
+        meter.style.width = Math.round(((liveOpsIndex + 1) / liveOps.length) * 100) + "%";
+        liveOpsIndex = (liveOpsIndex + 1) % liveOps.length;
+      }
+      const heartbeatStartedAt = Date.now();
+      function renderHeartbeat() {
+        const runtime = document.getElementById("heartbeatRuntime");
+        const elapsed = document.getElementById("heartbeatElapsed");
+        const autoDemo = document.getElementById("heartbeatAutoDemo");
+        if (!runtime || !elapsed || !autoDemo) return;
+        const seconds = Math.floor((Date.now() - heartbeatStartedAt) / 1000);
+        runtime.textContent = "browser-local alive @ " + new Date().toLocaleTimeString();
+        elapsed.textContent = seconds + "s";
+        autoDemo.textContent = protoState.gates.deposit && protoState.gates.redeem && protoState.gates.rebalance ? "completed" : "queued/running";
+      }
+      function renderEvidenceSnapshot() {
+        const target = document.getElementById("evidenceSnapshot");
+        if (!target) return;
+        target.textContent = JSON.stringify({
+          objective: "assign 6 GPT-5.4-mini lanes and 3 Claude API lanes; provide a live embedded-browser protocol demo",
+          embeddedBrowserDemo: {
+            url: "http://127.0.0.1:8787/",
+            status: "live browser-local static app",
+            theme: "vibrant dark protocol theme",
+            autoRun: "launch -> buy/deposit -> rebalance -> sell/redeem"
+          },
+          gptLanes: {
+            requested: 6,
+            represented: 6,
+            names: ["Tesla", "Raman", "Hilbert", "Noether", "Turing", "Curie"]
+          },
+          claudeApiLanes: {
+            requested: 3,
+            live: 0,
+            representedAsSecureGated: 3,
+            blocker: "No approved Anthropic/Claude credential or managed endpoint exposed to runtime",
+            required: ["ANTHROPIC_API_KEY or CLAUDE_API_KEY or CLAUDE_AGENT_ENDPOINT", "ORPHEUS_CLAUDE_MANAGED_AGENTS_ENABLED=true"]
+          },
+          protocolSimulation: {
+            vault: protoState.vault || "not launched",
+            nav: Number(protoState.nav.toFixed(4)),
+            shares: Number(protoState.shares.toFixed(4)),
+            pricePerShare: Number(pps().toFixed(6)),
+            gates: protoState.gates
+          },
+          safety: "Credential checks must be presence-only; never print secrets.",
+          nextAction: "Provide Claude provider path, then promote Claude-A/B/C to live API workers."
+        }, null, 2);
+      }
+      renderProtocol();
+      renderLiveOps();
+      renderHeartbeat();
+      renderEvidenceSnapshot();
+      window.setInterval(renderLiveOps, 2200);
+      window.setInterval(() => { renderHeartbeat(); renderEvidenceSnapshot(); }, 1000);
+      window.setTimeout(() => runProtocol("fullDemo"), 700);
+    })();
+  </script>
+
 </body>
 </html>

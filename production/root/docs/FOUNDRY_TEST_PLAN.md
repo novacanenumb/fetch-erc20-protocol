@@ -148,6 +148,22 @@ These are not spelled out in section 14, but they close the obvious gaps in the 
 | `testRebalanceCooldownBoundaryAtExactTimestamp` | Section 14 requires cooldown enforcement, but not the boundary timestamp. | `CooldownFixture` at the exact cooldown boundary | The exact boundary either passes or fails in a documented way, and early calls still revert. |
 | `testZeroAmountDepositAndRedeemRevert` | Zero-amount inputs are a common safety edge case and are not enumerated in section 14. | `BaseVaultFixture` | Zero-value deposit or redeem calls revert without side effects. |
 
+## Additional spec-level gaps from Hilbert validation audit
+
+These are explicit obligations in Jobs 7 and 8 that were not yet named as standalone test cases in this plan. They are mandatory unless the implementation packet owner documents a narrower equivalent test that proves the same behavior.
+
+| Test name | Missing obligation | Source obligation | Expected behavior |
+| --- | --- | --- | --- |
+| `testRedeemRevertsWhenTotalSupplyIsZero` | Redemption must check supply state before calculating gross claim or burning shares. | Job 7.2.1 | Redeem reverts cleanly when total supply is zero, with no quote transfer, spot exit, or share mutation. |
+| `testRebalanceRevertsForNonCreator` | Rebalance must enforce creator authority. | Job 8.2.1 | A non-creator caller cannot rebalance, sell positions, update target weights, or mutate cooldown state. |
+| `testRebalanceRejectsArbitraryExternalCalls` | Vault logic must prevent arbitrary external calls. | Job 8.3.3 | Rebalance cannot execute a non-approved external target or payload, and vault balances remain unchanged. |
+| `testFactoryRejectsYieldLpPerpAdapterKinds` | v0 factory deployment must reject non-spot adapter kinds. | Jobs 1.4 and 8.3.4 | Factory rejects adapters marked `YIELD`, `LP`, or `PERP` before vault deployment or registry attachment. |
+| `testRebalanceRejectsYieldLpPerpAdapterKinds` | v0 rebalance must reject non-spot adapter kinds. | Jobs 1.4, 8.2.3, and 8.3.4 | Rebalance rejects `YIELD`, `LP`, or `PERP` adapter routes before asset movement. |
+
+## Current validation limit
+
+Forge validation cannot currently be proven from this production checkout. The production root has no `foundry.toml`, no Solidity sources, and no `.t.sol` tests. The spec's DoD command points at `sandbox/root/app/thesis-protocol`, which is not present in this production root. Until that package exists and is lease-approved, this document is a coverage plan, not passing test evidence.
+
 ## Acceptance rule
 
 The Foundry test plan is complete when every required row above has a deterministic test case in the recommended suite tree and every edge-case row is either implemented or explicitly deferred with a written reason.
